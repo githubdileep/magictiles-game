@@ -1,0 +1,225 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: white;
+    overflow: hidden;
+}
+
+#game-container {
+    width: 400px;
+    height: 700px;
+    background: #16213e;
+    border-radius: 10px;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Score Display */
+#score-display {
+    height: 80px;
+    background: rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 20px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.score-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.score-item .label {
+    font-size: 12px;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.score-item span:last-child {
+    font-size: 24px;
+    font-weight: bold;
+    color: #00d9ff;
+    text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+}
+
+/* Game Area */
+#game-area {
+    width: 100%;
+    height: 620px;
+    position: relative;
+    overflow: hidden;
+    background: #0f1922;
+}
+
+/* Column Grid */
+#grid {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+.column {
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: background 0.1s;
+}
+
+.column:last-child {
+    border-right: none;
+}
+
+.column:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Hit Zone Line */
+#hit-line {
+    position: absolute;
+    bottom: 80px;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        #ff004c 20%, 
+        #ff004c 80%, 
+        transparent 100%);
+    box-shadow: 0 0 20px rgba(255, 0, 76, 0.8);
+    z-index: 2;
+    animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 1; }
+}
+
+/* Tiles Container */
+#tiles-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 3;
+    pointer-events: none;
+}
+
+/* Individual Tile */
+.tile {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(180deg, #00d9ff 0%, #0099cc 100%);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 217, 255, 0.4);
+    cursor: pointer;
+    pointer-events: auto;
+    transition: background 0.15s, transform 0.1s;
+    will-change: transform;
+}
+
+.tile:active {
+    transform: scale(0.95) !important;
+}
+
+.tile.success {
+    background: linear-gradient(180deg, #00ff88 0%, #00cc66 100%);
+    box-shadow: 0 4px 20px rgba(0, 255, 136, 0.6);
+}
+
+.tile.perfect {
+    background: linear-gradient(180deg, #ffd700 0%, #ffaa00 100%);
+    box-shadow: 0 4px 25px rgba(255, 215, 0, 0.8);
+}
+
+/* Overlays */
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    gap: 20px;
+    padding: 40px;
+    text-align: center;
+}
+
+.overlay.hidden {
+    display: none;
+}
+
+.overlay h1 {
+    font-size: 48px;
+    color: #00d9ff;
+    text-shadow: 0 0 20px rgba(0, 217, 255, 0.6);
+    margin-bottom: 10px;
+}
+
+.overlay p {
+    font-size: 18px;
+    color: #ccc;
+    margin: 5px 0;
+}
+
+.overlay p.hint {
+    font-size: 14px;
+    color: #888;
+    font-style: italic;
+}
+
+.overlay button {
+    padding: 15px 40px;
+    font-size: 20px;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(135deg, #00d9ff 0%, #0099cc 100%);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 5px 20px rgba(0, 217, 255, 0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-top: 20px;
+}
+
+.overlay button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 25px rgba(0, 217, 255, 0.6);
+}
+
+.overlay button:active {
+    transform: translateY(0);
+}
+
+/* Responsive adjustments */
+@media (max-height: 750px) {
+    #game-container {
+        height: 90vh;
+    }
+}
