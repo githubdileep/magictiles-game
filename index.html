@@ -3,30 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Magic Tiles Game</title>
+    <meta name="description" content="Magic Tiles - A rhythm-based browser game">
+    <title>Magic Tiles - Rhythm Game</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-    <div id="settings-menu" class="hidden">
-        <h2>Settings</h2>
-        <label for="difficulty">Difficulty:</label>
-        <select id="difficulty">
-            <option value="easy">Easy</option>
-            <option value="normal">Normal</option>
-            <option value="hard">Hard</option>
-        </select>
-        <button id="toggle-music">Toggle Music</button>
-        <button id="close-settings">Close</button>
+    <!-- Particles Container -->
+    <canvas id="particles-canvas"></canvas>
+
+    <div id="game-container">
+        <!-- Header with Controls -->
+        <div id="game-header">
+            <div id="score-display">
+                <div class="score-item">
+                    <span class="label">Score:</span>
+                    <span id="score">0</span>
+                </div>
+                <div class="score-item">
+                    <span class="label">Combo:</span>
+                    <span id="combo">0</span>
+                </div>
+                <div class="score-item">
+                    <span class="label">Multiplier:</span>
+                    <span id="multiplier">x1</span>
+                </div>
+            </div>
+            
+            <!-- Control Buttons -->
+            <div id="controls">
+                <button id="pause-btn" class="control-btn" title="Pause (P)">⏸</button>
+                <button id="settings-btn" class="control-btn" title="Settings">⚙</button>
+                <button id="mute-btn" class="control-btn" title="Mute">🔊</button>
+            </div>
+        </div>
+
+        <!-- High Score Display -->
+        <div id="high-score-banner">
+            <span class="label">High Score:</span>
+            <span id="high-score">0</span>
+        </div>
+
+        <!-- Game Area -->
+        <div id="game-area">
+            <!-- Column Grid -->
+            <div id="grid">
+                <div class="column" data-col="0"></div>
+                <div class="column" data-col="1"></div>
+                <div class="column" data-col="2"></div>
+                <div class="column" data-col="3"></div>
+            </div>
+
+            <!-- Hit Zone Line -->
+            <div id="hit-line"></div>
+            <div id="perfect-zone"></div>
+
+            <!-- Tiles Container -->
+            <div id="tiles-container"></div>
+
+            <!-- Streak Indicator -->
+            <div id="streak-indicator" class="hidden">
+                <span id="streak-text">🔥 STREAK!</span>
+            </div>
+        </div>
+
+        <!-- Stats Bar -->
+        <div id="stats-bar">
+            <div class="stat-item">
+                <span class="stat-label">Accuracy:</span>
+                <span id="accuracy">100%</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Perfect:</span>
+                <span id="perfect-count">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Speed:</span>
+                <span id="speed-level">1.0x</span>
+            </div>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="overlay">
+            <h1 class="glow-text">Magic Tiles</h1>
+            <p class="subtitle">Rhythm Game Challenge</p>
+            <p class="instruction">Click the tiles as they reach the red line!</p>
+            <p class="hint">💎 Perfect timing = golden tiles + bonus points</p>
+            
+            <!-- Difficulty Selection -->
+            <div id="difficulty-select">
+                <h3>Select Difficulty</h3>
+                <div class="difficulty-buttons">
+                    <button class="difficulty-btn" data-difficulty="easy">
+                        <span class="diff-emoji">😊</span>
+                        <span class="diff-name">Easy</span>
+                        <span class="diff-desc">Slower speed</span>
+                    </button>
+                    <button class="difficulty-btn active" data-difficulty="normal">
+                        <span class="diff-emoji">😎</span>
+                        <span class="diff-name">Normal</span>
+                        <span class="diff-desc">Balanced</span>
+                    </button>
+                    <button class="difficulty-btn" data-difficulty="hard">
+                        <span class="diff-emoji">🔥</span>
+                        <span class="diff-name">Hard</span>
+                        <span class="diff-desc">Fast pace</span>
+                    </button>
+                </div>
+            </div>
+            
+            <button id="start-btn" class="game-btn primary">Start Game</button>
+            <p class="controls-hint">Press <kbd>P</kbd> to pause • <kbd>ESC</kbd> to menu</p>
+        </div>
+
+        <!-- Pause Screen -->
+        <div id="pause-screen" class="overlay hidden">
+            <h2>⏸ Paused</h2>
+            <p class="current-score">Score: <span id="pause-score">0</span></p>
+            <button id="resume-btn" class="game-btn primary">Resume</button>
+            <button id="quit-btn" class="game-btn secondary">Quit to Menu</button>
+        </div>
+
+        <!-- Settings Screen -->
+        <div id="settings-screen" class="overlay hidden">
+            <h2>⚙ Settings</h2>
+            
+            <div class="settings-group">
+                <label class="setting-label">
+                    <span>🎵 Music Volume</span>
+                    <input type="range" id="music-volume" min="0" max="100" value="50">
+                    <span id="music-volume-value">50%</span>
+                </label>
+            </div>
+            
+            <div class="settings-group">
+                <label class="setting-label">
+                    <span>🔊 SFX Volume</span>
+                    <input type="range" id="sfx-volume" min="0" max="100" value="70">
+                    <span id="sfx-volume-value">70%</span>
+                </label>
+            </div>
+            
+            <div class="settings-group">
+                <label class="setting-label">
+                    <input type="checkbox" id="particles-toggle" checked>
+                    <span>✨ Particle Effects</span>
+                </label>
+            </div>
+            
+            <div class="settings-group">
+                <label class="setting-label">
+                    <input type="checkbox" id="screen-shake-toggle" checked>
+                    <span>📳 Screen Shake</span>
+                </label>
+            </div>
+            
+            <button id="close-settings" class="game-btn primary">Close</button>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="gameover-screen" class="overlay hidden">
+            <h1 class="gameover-title">Game Over!</h1>
+            
+            <div class="final-stats">
+                <div class="stat-box">
+                    <span class="stat-value" id="final-score">0</span>
+                    <span class="stat-name">Final Score</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-value" id="best-combo">0</span>
+                    <span class="stat-name">Best Combo</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-value" id="final-accuracy">0%</span>
+                    <span class="stat-name">Accuracy</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-value" id="final-perfect">0</span>
+                    <span class="stat-name">Perfect Hits</span>
+                </div>
+            </div>
+            
+            <div id="new-high-score" class="hidden achievement-popup">
+                🏆 NEW HIGH SCORE! 🏆
+            </div>
+            
+            <div class="button-group">
+                <button id="restart-btn" class="game-btn primary">Play Again</button>
+                <button id="menu-btn" class="game-btn secondary">Main Menu</button>
+            </div>
+        </div>
+
+        <!-- Achievement Notification -->
+        <div id="achievement-notification" class="hidden">
+            <div class="achievement-content">
+                <span class="achievement-icon">🏆</span>
+                <div class="achievement-text">
+                    <span class="achievement-title" id="achievement-title">Achievement!</span>
+                    <span class="achievement-desc" id="achievement-desc">Description</span>
+                </div>
+            </div>
+        </div>
     </div>
-    <div id="game">
-        <!-- Game UI goes here -->
-    </div>
-    <audio id="hit-sound" src="sounds/hit.mp3"></audio>
-    <audio id="perfect-sound" src="sounds/perfect.mp3"></audio>
-    <audio id="miss-sound" src="sounds/miss.mp3"></audio>
-    <audio id="game-over-sound" src="sounds/game-over.mp3"></audio>
-    <audio id="background-music" loop src="sounds/background-music.mp3"></audio>
+
     <script src="game.js"></script>
 </body>
 </html>
