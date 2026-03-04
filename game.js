@@ -55,6 +55,182 @@ const gameState = {
 // Audio Context
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
+// Background Music System
+class BackgroundMusic {
+    constructor() {
+        this.isPlaying = false;
+        this.gainNode = null;
+        this.oscillators = [];
+        this.currentPattern = 0;
+        this.patternInterval = null;
+        
+        // Musical patterns - creating a catchy rhythm game soundtrack
+        this.patterns = [
+            // Pattern 1: Main melody
+            [
+                { freq: 523.25, duration: 0.3 }, // C5
+                { freq: 587.33, duration: 0.3 }, // D5
+                { freq: 659.25, duration: 0.3 }, // E5
+                { freq: 698.46, duration: 0.3 }, // F5
+                { freq: 783.99, duration: 0.6 }, // G5
+                { freq: 698.46, duration: 0.3 }, // F5
+                { freq: 659.25, duration: 0.3 }, // E5
+                { freq: 587.33, duration: 0.6 }  // D5
+            ],
+            // Pattern 2: Variation
+            [
+                { freq: 659.25, duration: 0.3 }, // E5
+                { freq: 698.46, duration: 0.3 }, // F5
+                { freq: 783.99, duration: 0.3 }, // G5
+                { freq: 880.00, duration: 0.3 }, // A5
+                { freq: 783.99, duration: 0.6 }, // G5
+                { freq: 659.25, duration: 0.3 }, // E5
+                { freq: 523.25, duration: 0.3 }, // C5
+                { freq: 587.33, duration: 0.6 }  // D5
+            ],
+            // Pattern 3: Build-up
+            [
+                { freq: 783.99, duration: 0.3 }, // G5
+                { freq: 880.00, duration: 0.3 }, // A5
+                { freq: 987.77, duration: 0.3 }, // B5
+                { freq: 1046.5, duration: 0.6 }, // C6
+                { freq: 987.77, duration: 0.3 }, // B5
+                { freq: 880.00, duration: 0.3 }, // A5
+                { freq: 783.99, duration: 0.6 }  // G5
+            ]
+        ];
+        
+        // Bass pattern for rhythm
+        this.bassPattern = [
+            { freq: 130.81, duration: 0.4 }, // C3
+            { freq: 146.83, duration: 0.4 }, // D3
+            { freq: 164.81, duration: 0.4 }, // E3
+            { freq: 130.81, duration: 0.4 }  // C3
+        ];
+    }
+    
+    start() {
+        if (this.isPlaying) return;
+        
+        this.isPlaying = true;
+        this.gainNode = audioContext.createGain();
+        this.gainNode.connect(audioContext.destination);
+        this.updateVolume();
+        
+        // Start playing patterns
+        this.playPattern();
+    }
+    
+    playPattern() {
+        if (!this.isPlaying) return;
+        
+        const pattern = this.patterns[this.currentPattern % this.patterns.length];
+        const bassPattern = this.bassPattern;
+        
+        let time = audioContext.currentTime;
+        
+        // Play melody
+        pattern.forEach((note, index) => {
+            this.playNote(note.freq, time, note.duration, 'triangle', 0.15);
+            time += note.duration;
+        });
+        
+        // Play bass line (lower volume)
+        let bassTime = audioContext.currentTime;
+        bassPattern.forEach((note, index) => {
+            this.playNote(note.freq, bassTime, note.duration, 'sine', 0.08);
+            bassTime += note.duration;
+        });
+        
+        // Schedule next pattern
+        const patternDuration = pattern.reduce((sum, note) => sum + note.duration, 0) * 1000;
+        this.patternInterval = setTimeout(() => {
+            this.currentPattern++;
+            this.playPattern();
+        }, patternDuration);
+    }
+    
+    playNote(frequency, startTime, duration, waveType = 'triangle', volume = 0.15) {
+        if (!this.isPlaying) return;
+        
+        try {
+            const oscillator = audioContext.createOscillator();
+            const noteGain = audioContext.createGain();
+            
+            oscillator.type = waveType;
+            oscillator.frequency.setValueAtTime(frequency, startTime);
+            
+            // Envelope for smooth note
+            noteGain.gain.setValueAtTime(0, startTime);
+            noteGain.gain.linearRampToValueAtTime(volume, startTime + 0.02);
+            noteGain.gain.linearRampToValueAtTime(volume * 0.7, startTime + duration - 0.05);
+            noteGain.gain.linearRampToValueAtTime(0, startTime + duration);
+            
+            oscillator.connect(noteGain);
+            noteGain.connect(this.gainNode);
+            
+            oscillator.start(startTime);
+            oscillator.stop(startTime + duration);
+            
+            this.oscillators.push(oscillator);
+            
+            // Clean up old oscillators
+            setTimeout(() => {
+                const index = this.oscillators.indexOf(oscillator);
+                if (index > -1) {
+                    this.oscillators.splice(index, 1);
+                }
+            }, (duration + 0.1) * 1000);
+        } catch (e) {
+            console.error('Music playback error:', e);
+        }
+    }
+    
+    stop() {
+        this.isPlaying = false;
+        
+        if (this.patternInterval) {
+            clearTimeout(this.patternInterval);
+            this.patternInterval = null;
+        }
+        
+        // Stop all oscillators
+        this.oscillators.forEach(osc => {
+            try {
+                osc.stop();
+            } catch (e) {
+                // Oscillator might already be stopped
+            }
+        });
+        this.oscillators = [];
+        
+        if (this.gainNode) {
+            this.gainNode.disconnect();
+            this.gainNode = null;
+        }
+        
+        this.currentPattern = 0;
+    }
+    
+    pause() {
+        if (!this.isPlaying) return;
+        this.stop();
+    }
+    
+    resume() {
+        this.start();
+    }
+    
+    updateVolume() {
+        if (this.gainNode) {
+            const volume = gameState.settings.musicVolume / 100;
+            this.gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+        }
+    }
+}
+
+const backgroundMusic = new BackgroundMusic();
+
 // DOM Elements
 const elements = {
     startScreen: document.getElementById('start-screen'),
@@ -420,6 +596,9 @@ function startGame() {
     updateCombo();
     updateStats();
     
+    // Start background music
+    backgroundMusic.start();
+    
     // Start game loop
     gameLoop();
 }
@@ -467,11 +646,17 @@ function pauseGame() {
     gameState.isPaused = true;
     elements.pauseScreen.classList.remove('hidden');
     document.getElementById('pause-score').textContent = gameState.score;
+    
+    // Pause background music
+    backgroundMusic.pause();
 }
 
 function resumeGame() {
     gameState.isPaused = false;
     elements.pauseScreen.classList.add('hidden');
+    
+    // Resume background music
+    backgroundMusic.resume();
 }
 
 function quitToMenu() {
@@ -488,6 +673,9 @@ function endGame() {
     if (gameState.animationId) {
         cancelAnimationFrame(gameState.animationId);
     }
+    
+    // Stop background music
+    backgroundMusic.stop();
     
     // Update high score with error handling
     if (gameState.score > gameState.highScore) {
@@ -633,6 +821,9 @@ elements.closeSettingsBtn.addEventListener('click', () => {
 elements.musicVolumeSlider.addEventListener('input', (e) => {
     gameState.settings.musicVolume = parseInt(e.target.value);
     elements.musicVolumeValue.textContent = gameState.settings.musicVolume + '%';
+    
+    // Update background music volume in real-time
+    backgroundMusic.updateVolume();
 });
 
 elements.sfxVolumeSlider.addEventListener('input', (e) => {
@@ -650,15 +841,24 @@ elements.screenShakeToggle.addEventListener('change', (e) => {
 });
 
 elements.muteBtn.addEventListener('click', () => {
-    if (gameState.settings.sfxVolume > 0) {
+    if (gameState.settings.sfxVolume > 0 || gameState.settings.musicVolume > 0) {
+        // Mute both music and SFX
         gameState.settings.sfxVolume = 0;
+        gameState.settings.musicVolume = 0;
         elements.muteBtn.textContent = '🔇';
     } else {
+        // Unmute both
         gameState.settings.sfxVolume = 70;
+        gameState.settings.musicVolume = 50;
         elements.muteBtn.textContent = '🔊';
     }
     elements.sfxVolumeSlider.value = gameState.settings.sfxVolume;
     elements.sfxVolumeValue.textContent = gameState.settings.sfxVolume + '%';
+    elements.musicVolumeSlider.value = gameState.settings.musicVolume;
+    elements.musicVolumeValue.textContent = gameState.settings.musicVolume + '%';
+    
+    // Update background music volume
+    backgroundMusic.updateVolume();
 });
 
 // Keyboard Controls
