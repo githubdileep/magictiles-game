@@ -8,6 +8,9 @@ const CONFIG = {
     columnWidth: 112.5,
     hitZone: 100,
     perfectZone: 45,
+    perfectThreshold: 22.5, // perfectZone / 2
+    hitThreshold: 50, // hitZone / 2
+    speedIncreaseInterval: 60000, // 1 minute in milliseconds
     difficulties: {
         easy: { speed: 2, spawnInterval: 1200 },
         normal: { speed: 3.5, spawnInterval: 900 },
@@ -248,9 +251,9 @@ class Tile {
         this.clicked = true;
         
         // Check for perfect or good hit
-        if (distance < CONFIG.perfectZone / 2) {
+        if (distance < CONFIG.perfectThreshold) {
             this.handlePerfectHit();
-        } else if (distance < CONFIG.hitZone / 2) {
+        } else if (distance < CONFIG.hitThreshold) {
             this.handleGoodHit();
         } else {
             this.handleMiss();
@@ -371,15 +374,20 @@ document.head.appendChild(style);
 
 // Game Functions
 function initGame() {
-    // Load high score
-    gameState.highScore = parseInt(localStorage.getItem('magicTilesHighScore')) || 0;
-    elements.highScoreDisplay.textContent = gameState.highScore;
-    
-    // Load settings
-    const savedSettings = localStorage.getItem('magicTilesSettings');
-    if (savedSettings) {
-        gameState.settings = { ...gameState.settings, ...JSON.parse(savedSettings) };
-        applySettings();
+    // Load high score with error handling
+    try {
+        gameState.highScore = parseInt(localStorage.getItem('magicTilesHighScore')) || 0;
+        elements.highScoreDisplay.textContent = gameState.highScore;
+        
+        // Load settings
+        const savedSettings = localStorage.getItem('magicTilesSettings');
+        if (savedSettings) {
+            gameState.settings = { ...gameState.settings, ...JSON.parse(savedSettings) };
+            applySettings();
+        }
+    } catch (e) {
+        console.warn('localStorage not available:', e);
+        // Continue with default values
     }
 }
 
@@ -437,8 +445,8 @@ function gameLoop(timestamp = 0) {
     // Update particles
     particleSystem.update();
     
-    // Increase speed over time
-    gameState.gameSpeed = Math.min(2.0, 1.0 + (timestamp / 60000));
+    // Increase speed over time (1.0x to 2.0x over 1 minute)
+    gameState.gameSpeed = Math.min(2.0, 1.0 + (timestamp / CONFIG.speedIncreaseInterval));
     elements.speedLevelDisplay.textContent = gameState.gameSpeed.toFixed(1) + 'x';
     
     // Update stats
@@ -481,10 +489,14 @@ function endGame() {
         cancelAnimationFrame(gameState.animationId);
     }
     
-    // Update high score
+    // Update high score with error handling
     if (gameState.score > gameState.highScore) {
         gameState.highScore = gameState.score;
-        localStorage.setItem('magicTilesHighScore', gameState.highScore);
+        try {
+            localStorage.setItem('magicTilesHighScore', gameState.highScore);
+        } catch (e) {
+            console.warn('Failed to save high score:', e);
+        }
         elements.highScoreDisplay.textContent = gameState.highScore;
         document.getElementById('new-high-score').classList.remove('hidden');
     } else {
@@ -682,7 +694,11 @@ document.addEventListener('keydown', (e) => {
 });
 
 function saveSettings() {
-    localStorage.setItem('magicTilesSettings', JSON.stringify(gameState.settings));
+    try {
+        localStorage.setItem('magicTilesSettings', JSON.stringify(gameState.settings));
+    } catch (e) {
+        console.warn('Failed to save settings:', e);
+    }
 }
 
 function applySettings() {
