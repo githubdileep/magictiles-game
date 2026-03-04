@@ -759,7 +759,7 @@ kbd {
 /* Tablet and smaller desktops */
 @media (max-width: 768px) {
     #game-container {
-        width: 90vw;
+        width: 95vw;
         max-width: 450px;
     }
 }
