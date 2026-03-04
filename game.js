@@ -47,6 +47,10 @@ const gameState = {
         particlesEnabled: true,
         screenShakeEnabled: true
     },
+    savedVolumes: {
+        musicVolume: 50,
+        sfxVolume: 70
+    },
     lastSpawnTime: 0,
     gameSpeed: 1,
     animationId: null
@@ -214,10 +218,28 @@ class BackgroundMusic {
     
     pause() {
         if (!this.isPlaying) return;
-        this.stop();
+        
+        // Pause without resetting pattern position
+        this.isPlaying = false;
+        
+        if (this.patternInterval) {
+            clearTimeout(this.patternInterval);
+            this.patternInterval = null;
+        }
+        
+        // Stop all currently playing oscillators
+        this.oscillators.forEach(osc => {
+            try {
+                osc.stop();
+            } catch (e) {
+                // Oscillator might already be stopped
+            }
+        });
+        this.oscillators = [];
     }
     
     resume() {
+        if (this.isPlaying) return;
         this.start();
     }
     
@@ -820,6 +842,7 @@ elements.closeSettingsBtn.addEventListener('click', () => {
 
 elements.musicVolumeSlider.addEventListener('input', (e) => {
     gameState.settings.musicVolume = parseInt(e.target.value);
+    gameState.savedVolumes.musicVolume = gameState.settings.musicVolume; // Save for unmute
     elements.musicVolumeValue.textContent = gameState.settings.musicVolume + '%';
     
     // Update background music volume in real-time
@@ -828,6 +851,7 @@ elements.musicVolumeSlider.addEventListener('input', (e) => {
 
 elements.sfxVolumeSlider.addEventListener('input', (e) => {
     gameState.settings.sfxVolume = parseInt(e.target.value);
+    gameState.savedVolumes.sfxVolume = gameState.settings.sfxVolume; // Save for unmute
     elements.sfxVolumeValue.textContent = gameState.settings.sfxVolume + '%';
     playGoodSound(); // Preview sound
 });
@@ -842,14 +866,18 @@ elements.screenShakeToggle.addEventListener('change', (e) => {
 
 elements.muteBtn.addEventListener('click', () => {
     if (gameState.settings.sfxVolume > 0 || gameState.settings.musicVolume > 0) {
+        // Save current volumes before muting
+        gameState.savedVolumes.sfxVolume = gameState.settings.sfxVolume;
+        gameState.savedVolumes.musicVolume = gameState.settings.musicVolume;
+        
         // Mute both music and SFX
         gameState.settings.sfxVolume = 0;
         gameState.settings.musicVolume = 0;
         elements.muteBtn.textContent = '🔇';
     } else {
-        // Unmute both
-        gameState.settings.sfxVolume = 70;
-        gameState.settings.musicVolume = 50;
+        // Unmute both - restore saved volumes
+        gameState.settings.sfxVolume = gameState.savedVolumes.sfxVolume || 70;
+        gameState.settings.musicVolume = gameState.savedVolumes.musicVolume || 50;
         elements.muteBtn.textContent = '🔊';
     }
     elements.sfxVolumeSlider.value = gameState.settings.sfxVolume;
