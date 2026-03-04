@@ -1,5 +1,5 @@
 // ============================================
-// MAGIC TILES GAME - Complete Implementation
+// CHERRY'S MAGIC TILES GAME - Complete Implementation
 // ============================================
 
 // Game Configuration

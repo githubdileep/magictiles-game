@@ -37,7 +37,9 @@ body {
    ============================================ */
 #game-container {
     width: 450px;
+    max-width: 95vw;
     height: 750px;
+    max-height: 95vh;
     background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
     border-radius: 20px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 
@@ -753,6 +755,16 @@ kbd {
 /* ============================================
    RESPONSIVE DESIGN
    ============================================ */
+
+/* Tablet and smaller desktops */
+@media (max-width: 768px) {
+    #game-container {
+        width: 90vw;
+        max-width: 450px;
+    }
+}
+
+/* Smaller screens and mobile landscape */
 @media (max-height: 800px) {
     #game-container {
         height: 95vh;
@@ -764,6 +776,7 @@ kbd {
     }
 }
 
+/* Mobile portrait */
 @media (max-width: 500px) {
     #game-container {
         width: 95vw;
@@ -772,6 +785,19 @@ kbd {
     
     .glow-text {
         font-size: 42px;
+    }
+    
+    .subtitle {
+        font-size: 14px;
+        letter-spacing: 2px;
+    }
+    
+    .instruction {
+        font-size: 14px;
+    }
+    
+    .hint {
+        font-size: 12px;
     }
     
     .difficulty-buttons {
@@ -785,6 +811,124 @@ kbd {
     
     .final-stats {
         grid-template-columns: 1fr;
+    }
+    
+    .game-btn {
+        padding: 12px 30px;
+        font-size: 16px;
+    }
+    
+    #score-display {
+        gap: 10px;
+    }
+    
+    .score-item .label {
+        font-size: 8px;
+    }
+    
+    .score-item span:last-child {
+        font-size: 16px;
+    }
+    
+    .control-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+    }
+}
+
+/* Very small mobile devices */
+@media (max-width: 360px) {
+    .glow-text {
+        font-size: 32px;
+    }
+    
+    .overlay {
+        padding: 20px;
+        gap: 15px;
+    }
+    
+    .game-btn {
+        padding: 10px 25px;
+        font-size: 14px;
+    }
+    
+    .difficulty-btn {
+        padding: 12px 15px;
+        min-width: 80px;
+    }
+    
+    .diff-emoji {
+        font-size: 24px;
+    }
+    
+    .diff-name {
+        font-size: 14px;
+    }
+}
+
+/* Landscape orientation handling */
+@media (max-height: 600px) and (orientation: landscape) {
+    #game-container {
+        height: 90vh;
+        width: auto;
+        max-width: 400px;
+    }
+    
+    #game-area {
+        height: calc(100% - 140px);
+    }
+    
+    .overlay {
+        padding: 20px;
+        gap: 10px;
+    }
+    
+    .glow-text {
+        font-size: 36px;
+        margin-bottom: 5px;
+    }
+    
+    .subtitle {
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+    
+    .instruction,
+    .hint {
+        font-size: 12px;
+        margin: 5px 0;
+    }
+    
+    #difficulty-select {
+        margin: 10px 0;
+    }
+    
+    .difficulty-buttons {
+        gap: 8px;
+    }
+    
+    .difficulty-btn {
+        padding: 8px 12px;
+        min-width: 70px;
+    }
+    
+    .game-btn {
+        padding: 10px 25px;
+        font-size: 14px;
+    }
+    
+    .final-stats {
+        gap: 10px;
+        margin: 10px 0;
+    }
+    
+    .stat-box {
+        padding: 12px;
+    }
+    
+    .stat-value {
+        font-size: 24px;
     }
 }
 
