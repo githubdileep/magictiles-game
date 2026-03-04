@@ -772,8 +772,15 @@ kbd {
         border-radius: 15px;
     }
     
+    .overlay {
+        justify-content: flex-start;
+        padding: 30px 20px;
+        overflow-y: auto;
+    }
+    
     .glow-text {
         font-size: 36px;
+        margin-top: 20px;
     }
     
     .difficulty-buttons {
