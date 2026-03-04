@@ -1,4 +1,4 @@
-# Magic Tiles - Rhythm Game 🎮
+# Cherry's Magic Tiles - Rhythm Game 🎮
 
 A fully-featured, production-ready browser-based rhythm game inspired by popular piano tile games.
 
