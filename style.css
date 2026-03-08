@@ -400,7 +400,7 @@ body {
    START SCREEN
    ============================================ */
 .glow-text {
-    font-size: 56px;
+    font-size: 48px;
     font-weight: bold;
     background: linear-gradient(45deg, #00d4ff, #7b2ff7, #f107a3);
     background-size: 200% 200%;
@@ -408,8 +408,10 @@ body {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     animation: gradient-shift 3s ease infinite;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     text-shadow: 0 0 40px rgba(0, 212, 255, 0.6);
+    line-height: 1.2;
+    padding: 0 20px;
 }
 
 @keyframes gradient-shift {
@@ -783,8 +785,15 @@ kbd {
         border-radius: 15px;
     }
     
+    .overlay {
+        justify-content: flex-start;
+        padding: 30px 20px;
+        overflow-y: auto;
+    }
+    
     .glow-text {
-        font-size: 42px;
+        font-size: 36px;
+        margin-top: 20px;
     }
     
     .subtitle {
